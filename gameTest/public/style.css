@@ -1,0 +1,10 @@
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game{
+    background-color: rgb(228, 219, 207);
+    border: 1px solid black;
+}
