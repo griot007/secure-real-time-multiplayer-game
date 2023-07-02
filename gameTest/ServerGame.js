@@ -2,29 +2,28 @@ let npcEnv = require('dotenv').config({ path: './env/npcOption.env' })
 let canvaEnv = require('dotenv').config({ path: './env/canvaSetting.env' })
 
 module.exports = function (io) {
-
     const clients = {};
     const players = {};
     let coin = {};
 
     io.on('connection', async (socket) => {
-
         console.log("New client connected. ID: ", socket.id);
-        socket.emit(`gameWindowSeting`, { width: parseInt(canvaEnv.parsed.WIDTH) , height:parseInt(canvaEnv.parsed.HEIGHT) });
+        socket.emit(`gameWindowSeting`, {width: parseInt(canvaEnv.parsed.WIDTH) , height:parseInt(canvaEnv.parsed.HEIGHT)});//canvas dimension
 
         socket.on('metchJoin', async() => {
             if(!clients[socket.id]){
                 clients[socket.id] = socket;
                 newCoin();
                 newPlayer(socket);
-                //Object.values(players).map(player => player.info.score = 0) if ypu like restart game on join new player
+                Object.values(players).map(player => player.info.score = 0) //if ypu like restart game on join new player
+                socket.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)))//fisrt position join
             }
         });
 
         socket.on('playerMove', async (keys) => {
             if(clients[socket.id] && players[socket.id]){
                 moveCheker(socket , keys);
-                io.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)));
+                io.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)));//event to draw in client
             }
         });
 
@@ -34,10 +33,10 @@ module.exports = function (io) {
           });
     });
 
-    async function newPlayer(socket){
+    async function newPlayer(socket){//object player
         players[socket.id] = {
             socket: socket,
-            info: {
+            info: {//only data game to not sent ip addres
                 id : socket.id,
                 image: npcEnv.parsed.NPCIMAGE,
                 size : parseInt(npcEnv.parsed.NPCSIZE),
@@ -52,7 +51,7 @@ module.exports = function (io) {
         }
     }
 
-    async function newCoin(){
+    async function newCoin(){//create object coin 
         coin = {
             info: {
                 image: npcEnv.parsed.COINIMAGE,
@@ -66,7 +65,7 @@ module.exports = function (io) {
         return coin
     }
 
-    async function moveCheker(socket , keys){
+    async function moveCheker(socket , keys){// move player and check is on coin
         if ((keys['w'] || keys['W']) && players[socket.id].info.pos.y > 0) 
             players[socket.id].info.pos.y -= players[socket.id].info.npcStep;
 
@@ -79,16 +78,16 @@ module.exports = function (io) {
         if ((keys['d'] || keys['D'])&& players[socket.id].info.pos.x < parseInt(canvaEnv.parsed.WIDTH) - parseInt(npcEnv.parsed.NPCSIZE)) 
             players[socket.id].info.pos.x += players[socket.id].info.npcStep;
         
-        if(Math.abs(players[socket.id].info.pos.x - coin.info.pos.x) <= npcEnv.parsed.NPCSIZE  && Math.abs(players[socket.id].info.pos.y - coin.info.pos.y) <= npcEnv.parsed.NPCSIZE)
+        if(Math.abs(players[socket.id].info.pos.x - coin.info.pos.x) <= npcEnv.parsed.NPCSIZE  && Math.abs(players[socket.id].info.pos.y - coin.info.pos.y) <= npcEnv.parsed.NPCSIZE)//player above coin
         {
             players[socket.id].info.score  += 1
             newCoin()
-            Object.values(players).sort((player1, player2) => player1.info.score - player2.info.score).reverse().forEach((player,index) => {player.info.rank = index + 1}); // to rank player in game
+            Object.values(players).sort((player1, player2) => player1.info.score - player2.info.score).reverse().forEach((player,index) => {player.info.rank = index + 1}); //calculate ranck to sort score and reverse arr to use index to get rank
         }
     }   
     
     async function disconnect(socket){
-        if (clients[socket.id] && players[socket.id]){     
+        if (clients[socket.id] && players[socket.id]){//check for disconect socket and delete to the list
             delete clients[socket.id];
             delete players[socket.id];
         }
@@ -100,5 +99,4 @@ module.exports = function (io) {
         pos.y = Math.floor(Math.random() * (parseInt(canvaEnv.parsed.HEIGHT)-30));
         return pos;
     }
-    
 }
