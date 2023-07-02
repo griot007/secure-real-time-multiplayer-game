@@ -17,7 +17,7 @@ module.exports = function (io) {
                 newPlayer(socket);
                 Object.values(players).map(player => player.info.score = 0) //if ypu like restart game on join new player
                 socket.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)))//fisrt position join
-                io.emit("statisticGame", {nPlayer : Object.values(players).length , rank : ``});//event to draw in client
+                io.emit("statisticGame", {nPlayer : Object.values(players).length , rank : `` , score : players[socket.id].info.score});//event to draw in client
             }
         });
 
@@ -67,7 +67,7 @@ module.exports = function (io) {
     }
 
     async function moveCheker(socket , keys){// move player and check is on coin
-        if ((keys['w'] || keys['W']) && players[socket.id].info.pos.y > parseInt(canvaEnv.parsed.TEXTSPACE)) 
+        if ((keys['w'] || keys['W']) && players[socket.id].info.pos.y > parseInt(canvaEnv.parsed.TEXTSPACE)+(parseInt(npcEnv.parsed.NPCSIZE)/2)) 
             players[socket.id].info.pos.y -= players[socket.id].info.npcStep;
 
         if ((keys['s'] || keys['S'] )&& players[socket.id].info.pos.y < parseInt(canvaEnv.parsed.HEIGHT) - parseInt(npcEnv.parsed.NPCSIZE)) 
@@ -84,7 +84,7 @@ module.exports = function (io) {
             newCoin()
             players[socket.id].info.score  += 1
             Object.values(players).sort((player1, player2) => player1.info.score - player2.info.score).reverse().forEach((player,index) => {player.info.rank = index + 1}); //calculate ranck to sort score and reverse arr to use index to get rank
-            Object.values(players).forEach((player) => {player.socket.emit(`statisticGame`,{nPlayer : Object.values(players).length , rank : player.info.rank})})
+            Object.values(players).forEach((player) => {player.socket.emit(`statisticGame`,{nPlayer : Object.values(players).length , rank : player.info.rank , score : player.info.score})})
         }
     }   
     
