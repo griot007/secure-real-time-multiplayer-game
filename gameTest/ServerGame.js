@@ -16,7 +16,7 @@ module.exports = function (io) {
                 newCoin();
                 newPlayer(socket);
                 Object.values(players).map(player => player.info.score = 0) //if ypu like restart game on join new player
-                socket.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)))//fisrt position join
+                io.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)))//fisrt position join
                 io.emit("statisticGame", {nPlayer : Object.values(players).length , rank : `` , score : players[socket.id].info.score});//event to draw in client
             }
         });
@@ -31,6 +31,8 @@ module.exports = function (io) {
         socket.on("disconnect", async (reason) => {
             console.log("Client disconnected. ID: ", socket.id);
             disconnect(socket)
+            io.emit("statisticGame", {nPlayer : Object.values(players).length});
+            io.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)))//fisrt position join
           });
     });
 
