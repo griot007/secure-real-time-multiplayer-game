@@ -39,20 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // socket.on('draw', (allInfo) => {//all draw game coin , player
-    //     context.clearRect(0, 0, canvas.width, canvas.height);
-    //     context.font = "20px Arial";
-    //     context.fillText(`Online player : ${allInfo.length - 1}`, 10, 50);
-    //     allInfo.forEach(info => {
-    //         if(info.image == `./src/npc.png`)
-    //             context.drawImage(imageNpc, info.pos.x, info.pos.y, info.size, info.size);
-    //         else
-    //             context.drawImage(imageCoin, info.pos.x, info.pos.y, info.size, info.size);
-    //         if (info.rank)
-    //                 context.fillText(info.rank, info.pos.x, info.pos.y);
-    //     });
-    // });
-
     function updatePosition() {//check moving if moving send to server key to calculate your position
         if(Object.values(keys).some((elemento) => elemento === true) != 0)
             socket.emit(`playerMove`, keys);
