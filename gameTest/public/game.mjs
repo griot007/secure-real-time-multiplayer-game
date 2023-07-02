@@ -2,29 +2,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io({transports: ['websocket'], upgrade: false});
     const keys = {};
 
+    const imageNpc = new Image();
+    const imageCoin = new Image();
+    const textSpace = 30;
+
     const canvas = document.getElementById('game-window');
     const context = canvas.getContext('2d');
 
-    socket.on('gameWindowSeting', (canvaData) => {//set canvas dimension
-        canvas.width = canvaData.width;
-        canvas.height = canvaData.height;
-        socket.emit(`metchJoin`);
+
+    imageCoin.onload = () => {
+        socket.emit('metchJoin');
+    };
+
+    socket.on('gameWindowSeting', (Data) => {//set canvas dimension
+        canvas.width = Data.width;
+        canvas.height = Data.height;
+        imageNpc.src = Data.npc;
+        imageCoin.src = Data.coin;
+        textSpace = Data.textSpace
+    });
+
+    socket.on('statisticGame', (stat) => {//all draw game coin , player
+        context.clearRect(0, 0, canvas.width, textSpace);
+        context.font = "20px Arial";
+        context.fillText(`Online player : ${stat.nPlayer}`, 0, textSpace);
+        context.fillText(`your rank : ${stat.rank}` , 800, textSpace);
     });
 
     socket.on('draw', (allInfo) => {//all draw game coin , player
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.font = "20px Arial";
-        context.fillText(`Online player : ${allInfo.length - 1}`, 10, 50);
+        context.clearRect(0, textSpace, canvas.width, canvas.height);
         allInfo.forEach(info => {
-            const image = new Image();
-            image.onload = () => {
-                context.drawImage(image, info.pos.x, info.pos.y, info.size, info.size);
-                if (info.rank)
-                  context.fillText(info.rank, info.pos.x, info.pos.y);
-              };
-              image.src = info.image;
+            if(info.image == `./src/npc.png`)
+                context.drawImage(imageNpc, info.pos.x, info.pos.y, info.size, info.size);
+            else
+                context.drawImage(imageCoin, info.pos.x, info.pos.y, info.size, info.size);
         });
     });
+
+    // socket.on('draw', (allInfo) => {//all draw game coin , player
+    //     context.clearRect(0, 0, canvas.width, canvas.height);
+    //     context.font = "20px Arial";
+    //     context.fillText(`Online player : ${allInfo.length - 1}`, 10, 50);
+    //     allInfo.forEach(info => {
+    //         if(info.image == `./src/npc.png`)
+    //             context.drawImage(imageNpc, info.pos.x, info.pos.y, info.size, info.size);
+    //         else
+    //             context.drawImage(imageCoin, info.pos.x, info.pos.y, info.size, info.size);
+    //         if (info.rank)
+    //                 context.fillText(info.rank, info.pos.x, info.pos.y);
+    //     });
+    // });
 
     function updatePosition() {//check moving if moving send to server key to calculate your position
         if(Object.values(keys).some((elemento) => elemento === true) != 0)
