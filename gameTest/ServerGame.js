@@ -8,7 +8,7 @@ module.exports = function (io) {
 
     io.on('connection', async (socket) => {
         console.log("New client connected. ID: ", socket.id);
-        socket.emit(`gameWindowSeting`, {width: parseInt(canvaEnv.parsed.WIDTH) , height:parseInt(canvaEnv.parsed.HEIGHT)});//canvas dimension
+        socket.emit(`gameWindowSeting`, {width: parseInt(canvaEnv.parsed.WIDTH) , height:parseInt(canvaEnv.parsed.HEIGHT) ,textSpace:parseInt(canvaEnv.parsed.TEXTSPACE), npc: npcEnv.parsed.NPCIMAGE , coin: npcEnv.parsed.COINIMAGE});//canvas dimension
 
         socket.on('metchJoin', async() => {
             if(!clients[socket.id]){
@@ -17,6 +17,7 @@ module.exports = function (io) {
                 newPlayer(socket);
                 Object.values(players).map(player => player.info.score = 0) //if ypu like restart game on join new player
                 socket.emit("draw", Object.values(players).map(player => player.info).concat(Object.values(coin)))//fisrt position join
+                io.emit("statisticGame", {nPlayer : Object.values(players).length , rank : ``});//event to draw in client
             }
         });
 
@@ -66,7 +67,7 @@ module.exports = function (io) {
     }
 
     async function moveCheker(socket , keys){// move player and check is on coin
-        if ((keys['w'] || keys['W']) && players[socket.id].info.pos.y > 0) 
+        if ((keys['w'] || keys['W']) && players[socket.id].info.pos.y > parseInt(canvaEnv.parsed.TEXTSPACE)) 
             players[socket.id].info.pos.y -= players[socket.id].info.npcStep;
 
         if ((keys['s'] || keys['S'] )&& players[socket.id].info.pos.y < parseInt(canvaEnv.parsed.HEIGHT) - parseInt(npcEnv.parsed.NPCSIZE)) 
@@ -80,9 +81,10 @@ module.exports = function (io) {
         
         if(Math.abs(players[socket.id].info.pos.x - coin.info.pos.x) <= npcEnv.parsed.NPCSIZE  && Math.abs(players[socket.id].info.pos.y - coin.info.pos.y) <= npcEnv.parsed.NPCSIZE)//player above coin
         {
-            players[socket.id].info.score  += 1
             newCoin()
+            players[socket.id].info.score  += 1
             Object.values(players).sort((player1, player2) => player1.info.score - player2.info.score).reverse().forEach((player,index) => {player.info.rank = index + 1}); //calculate ranck to sort score and reverse arr to use index to get rank
+            Object.values(players).forEach((player) => {player.socket.emit(`statisticGame`,{nPlayer : Object.values(players).length , rank : player.info.rank})})
         }
     }   
     
@@ -95,8 +97,8 @@ module.exports = function (io) {
 
     function randomPos(){
         let pos = {}
-        pos.x = Math.floor(Math.random() * (parseInt(canvaEnv.parsed.WIDTH)-30));
-        pos.y = Math.floor(Math.random() * (parseInt(canvaEnv.parsed.HEIGHT)-30));
+        pos.x = Math.floor(Math.random() * (parseInt(canvaEnv.parsed.WIDTH ) - parseInt(canvaEnv.parsed.TEXTSPACE) - parseInt(npcEnv.parsed.NPCSIZE)) + parseInt(canvaEnv.parsed.TEXTSPACE));
+        pos.y = Math.floor(Math.random() * (parseInt(canvaEnv.parsed.HEIGHT) - parseInt(canvaEnv.parsed.TEXTSPACE) - parseInt(npcEnv.parsed.NPCSIZE)) + parseInt(canvaEnv.parsed.TEXTSPACE));
         return pos;
     }
 }
