@@ -4,15 +4,7 @@ const keys = {};
 const canvas = document.getElementById('game-window');
 const context = canvas.getContext('2d');
 
-
-setTimeout(() => {
-    socket.emit(`metchJoin`)
-    socket.emit(`playerMove`,keys)
-}, 250);
-
-setTimeout(() => {
-    socket.emit(`playerMove`,keys)
-}, 300);
+socket.emit(`metchJoin`)
 
 socket.on('gameWindowSeting', (canvaData) => {
     canvas.width = canvaData.width;
