@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const imageNpc = new Image();
     const imageCoin = new Image();
-    const textSpace = 30;
 
     const canvas = document.getElementById('game-window');
     const context = canvas.getContext('2d');
+    let textSpace = 30;
 
 
     imageCoin.onload = () => {
@@ -25,8 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('statisticGame', (stat) => {//all draw game coin , player
         context.clearRect(0, 0, canvas.width, textSpace);
         context.font = "20px Arial";
-        context.fillText(`Online player : ${stat.nPlayer}`, 0, textSpace);
-        context.fillText(`your rank : ${stat.rank}` , 800, textSpace);
+        if(stat.nPlayer)
+            context.fillText(`Online player : ${stat.nPlayer}`, 0, textSpace/2);
+        if(stat.rank)
+            context.fillText(`your rank : ${stat.rank}` , canvas.width/2, textSpace/2);
+        if(stat.score)
+            context.fillText(`your score : ${stat.score}` , canvas.width-100, textSpace/2);
     });
 
     socket.on('draw', (allInfo) => {//all draw game coin , player
